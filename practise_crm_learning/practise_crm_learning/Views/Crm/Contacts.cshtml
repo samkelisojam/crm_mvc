@@ -1,0 +1,124 @@
+@using practise_crm_learning.Models
+@model List<Contact>
+@{
+    ViewData["Title"] = "Contacts";
+}
+
+<div class="crm-page-header">
+    <div>
+        <h1 class="crm-page-title"><i class="fa-solid fa-users me-2 text-gold"></i>Contacts</h1>
+        <div class="crm-page-subtitle">@Model.Count contacts · Last updated just now</div>
+    </div>
+    <div class="d-flex gap-2">
+        <button class="btn-crm btn-crm-outline"><i class="fa-solid fa-file-import"></i> Import CSV</button>
+        <button class="btn-crm btn-crm-primary"><i class="fa-solid fa-user-plus"></i> New Contact</button>
+    </div>
+</div>
+
+<!-- FILTERS TOOLBAR -->
+<div class="crm-toolbar">
+    <div class="crm-toolbar-left">
+        <div class="crm-search-inline">
+            <i class="fa-solid fa-search"></i>
+            <input type="text" placeholder="Search contacts..." id="contactSearch" onkeyup="filterContacts()" />
+        </div>
+        <select class="form-select" style="background:var(--surface);border:1px solid var(--border);color:#fff;border-radius:8px;padding:8px 14px;font-size:0.85rem;width:auto;">
+            <option>All Provinces</option>
+            @foreach (var p in new[] {"Gauteng","Western Cape","KwaZulu-Natal","Eastern Cape","Limpopo","Mpumalanga","North West","Free State","Northern Cape"})
+            {
+                <option>@p</option>
+            }
+        </select>
+        <select class="form-select" style="background:var(--surface);border:1px solid var(--border);color:#fff;border-radius:8px;padding:8px 14px;font-size:0.85rem;width:auto;">
+            <option>All Types</option>
+            @foreach (var t in Enum.GetValues<ContactType>()) { <option>@t</option> }
+        </select>
+    </div>
+    <div style="font-size:0.82rem;color:var(--text-muted);">Showing @Model.Count of 1,247 contacts</div>
+</div>
+
+<!-- TABLE -->
+<div class="crm-table-wrapper">
+    <table class="crm-table" id="contactsTable">
+        <thead>
+            <tr>
+                <th><input type="checkbox" class="form-check-input" /></th>
+                <th>Contact</th>
+                <th>Title / Company</th>
+                <th>Phone</th>
+                <th>Province</th>
+                <th>Type</th>
+                <th>Added</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var c in Model)
+            {
+                var initials = $"{c.FirstName[0]}{c.LastName[0]}";
+                var typeClass = c.Type switch {
+                    ContactType.Customer => "status-won",
+                    ContactType.Prospect => "status-new",
+                    ContactType.Partner => "status-qualified",
+                    ContactType.Supplier => "status-proposal",
+                    _ => "status-contacted"
+                };
+                <tr>
+                    <td><input type="checkbox" class="form-check-input" /></td>
+                    <td>
+                        <div class="contact-cell">
+                            <div class="contact-avatar">@initials</div>
+                            <div>
+                                <div class="contact-name">@c.FullName</div>
+                                <div class="contact-company">@c.Email</div>
+                            </div>
+                        </div>
+                    </td>
+                    <td>
+                        <div style="font-size:0.88rem;color:rgba(255,255,255,0.8);">@c.Title</div>
+                        <div style="font-size:0.76rem;color:var(--text-muted);">@c.Company</div>
+                    </td>
+                    <td style="font-size:0.82rem;color:rgba(255,255,255,0.7);">@c.Phone</td>
+                    <td>
+                        <span style="background:rgba(255,255,255,0.06);padding:3px 10px;border-radius:50px;font-size:0.75rem;color:rgba(255,255,255,0.6);">
+                            @c.Province
+                        </span>
+                    </td>
+                    <td><span class="badge-status @typeClass">@c.Type</span></td>
+                    <td style="font-size:0.78rem;color:var(--text-muted);">@c.CreatedAt.ToString("dd MMM yyyy")</td>
+                    <td>
+                        <div class="table-actions">
+                            <a href="#" class="btn-table-action"><i class="fa-solid fa-eye"></i></a>
+                            <a href="#" class="btn-table-action"><i class="fa-solid fa-edit"></i></a>
+                            <a href="#" class="btn-table-action"><i class="fa-solid fa-phone"></i></a>
+                        </div>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>
+
+<!-- PAGINATION -->
+<div style="display:flex;align-items:center;justify-content:space-between;margin-top:16px;flex-wrap:wrap;gap:10px;">
+    <span style="font-size:0.82rem;color:var(--text-muted);">Showing 1-@Model.Count of 1,247 contacts</span>
+    <div style="display:flex;gap:6px;">
+        @for (int i = 1; i <= 5; i++)
+        {
+            <button style="width:34px;height:34px;border-radius:8px;border:1px solid var(--border);background:@(i==1?"var(--sa-gold)":"transparent");color:@(i==1?"#000":"rgba(255,255,255,0.6)");font-size:0.82rem;font-weight:600;cursor:pointer;">@i</button>
+        }
+        <button style="width:34px;height:34px;border-radius:8px;border:1px solid var(--border);background:transparent;color:rgba(255,255,255,0.6);font-size:0.82rem;cursor:pointer;">…</button>
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function filterContacts() {
+            const val = document.getElementById('contactSearch').value.toLowerCase();
+            const rows = document.querySelectorAll('#contactsTable tbody tr');
+            rows.forEach(row => {
+                row.style.display = row.textContent.toLowerCase().includes(val) ? '' : 'none';
+            });
+        }
+    </script>
+}

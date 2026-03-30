@@ -1,0 +1,237 @@
+@using practise_crm_learning.Models
+@model CompanyRegisterViewModel
+@{
+    ViewData["Title"] = "Register Your Company";
+}
+
+<section class="page-hero" style="padding: 120px 0 60px;">
+    <div class="container">
+        <div class="hero-badge mx-auto d-inline-flex">
+            <i class="fa-solid fa-rocket"></i> Get Started in 5 Minutes
+        </div>
+        <h1 class="section-title mt-3">Register Your SA Business</h1>
+        <p class="section-subtitle mx-auto">Join 5,200+ South African companies already using UbuntuCRM. Free forever to start.</p>
+    </div>
+</section>
+
+<section class="section-base section-dark" style="padding-top:40px;">
+    <div class="container">
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <!-- PROGRESS STEPS -->
+                <div style="display:flex;align-items:center;gap:0;margin-bottom:36px;justify-content:center;">
+                    @foreach (var step in new[] { new { n=1, label="Company Info" }, new { n=2, label="Choose Sector" }, new { n=3, label="Create Account" } })
+                    {
+                        <div style="display:flex;align-items:center;">
+                            <div style="display:flex;flex-direction:column;align-items:center;gap:6px;">
+                                <div style="width:36px;height:36px;border-radius:50%;background:var(--sa-gold);color:#000;display:flex;align-items:center;justify-content:center;font-weight:800;font-size:0.85rem;">@step.n</div>
+                                <span style="font-size:0.72rem;color:rgba(255,255,255,0.6);white-space:nowrap;">@step.label</span>
+                            </div>
+                            @if (step.n < 3)
+                            {
+                                <div style="width:80px;height:2px;background:rgba(255,182,18,0.3);margin: 0 0 20px 0;"></div>
+                            }
+                        </div>
+                    }
+                </div>
+
+                <div class="form-dark">
+                    <form asp-controller="Company" asp-action="Register" method="post" enctype="multipart/form-data">
+                        <!-- SECTION: Company Details -->
+                        <div style="margin-bottom:32px;">
+                            <h5 style="color:var(--sa-gold);font-weight:700;margin-bottom:20px;display:flex;align-items:center;gap:8px;">
+                                <i class="fa-solid fa-building"></i> Company Information
+                            </h5>
+                            <div class="row g-3">
+                                <div class="col-md-6 form-group-dark">
+                                    <label class="form-label">Company Name *</label>
+                                    <input asp-for="CompanyName" class="form-control" placeholder="e.g. Ubuntu Motors Car Wash" required />
+                                </div>
+                                <div class="col-md-6 form-group-dark">
+                                    <label class="form-label">CIPC Registration Number</label>
+                                    <input asp-for="RegistrationNumber" class="form-control" placeholder="2024/123456/07" />
+                                </div>
+                                <div class="col-md-6 form-group-dark">
+                                    <label class="form-label">City *</label>
+                                    <input asp-for="City" class="form-control" placeholder="e.g. Johannesburg" required />
+                                </div>
+                                <div class="col-md-6 form-group-dark">
+                                    <label class="form-label">Province *</label>
+                                    <select asp-for="Province" class="form-select" required>
+                                        <option value="">Select Province</option>
+                                        @foreach (var p in CompanyRegisterViewModel.SAProvinces)
+                                        {
+                                            <option value="@p">@p</option>
+                                        }
+                                    </select>
+                                </div>
+                                <div class="col-12 form-group-dark">
+                                    <label class="form-label">Street Address</label>
+                                    <input asp-for="Address" class="form-control" placeholder="12 Mandela Drive, Sandton" />
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- SECTION: Choose Sector -->
+                        <div style="margin-bottom:32px;">
+                            <h5 style="color:var(--sa-gold);font-weight:700;margin-bottom:20px;display:flex;align-items:center;gap:8px;">
+                                <i class="fa-solid fa-industry"></i> Choose Your Business Sector
+                            </h5>
+                            <p style="color:var(--text-muted);font-size:0.85rem;margin-bottom:16px;">
+                                We'll configure your CRM with sector-specific fields, workflows and reports.
+                            </p>
+                            <input type="hidden" asp-for="Sector" id="sectorInput" />
+                            <div class="sector-picker" id="sectorPicker">
+                                @foreach (var sector in SectorHelper.AllSectors())
+                                {
+                                    <div class="sector-pick-item @(sector == Sector.CarWash ? "selected" : "")"
+                                         onclick="selectSector('@sector', this)"
+                                         data-sector="@sector">
+                                        <i class="fa-solid @SectorHelper.GetIcon(sector)"></i>
+                                        @SectorHelper.GetDisplayName(sector)
+                                    </div>
+                                }
+                            </div>
+                        </div>
+
+                        <!-- SECTION: Subscription Plan -->
+                        <div style="margin-bottom:32px;">
+                            <h5 style="color:var(--sa-gold);font-weight:700;margin-bottom:20px;display:flex;align-items:center;gap:8px;">
+                                <i class="fa-solid fa-crown"></i> Choose Your Plan
+                            </h5>
+                            <div class="row g-3">
+                                @{
+                                    var plans = new[] {
+                                        new { tier=SubscriptionTier.Free, label="Free", price="R0/mo", desc="1 user · 100 contacts" },
+                                        new { tier=SubscriptionTier.Starter, label="Starter", price="R299/mo", desc="5 users · 1,000 contacts" },
+                                        new { tier=SubscriptionTier.Professional, label="Professional ⭐", price="R799/mo", desc="25 users · 10,000 contacts" },
+                                        new { tier=SubscriptionTier.Enterprise, label="Enterprise", price="R2,499/mo", desc="Unlimited everything" },
+                                    };
+                                }
+                                @foreach (var plan in plans)
+                                {
+                                    <div class="col-md-6 col-lg-3">
+                                        <label style="display:block;cursor:pointer;">
+                                            <input type="radio" asp-for="SubscriptionTier" value="@plan.tier" style="display:none;" class="plan-radio" onchange="selectPlan(this)" />
+                                            <div class="plan-card" style="background:var(--dark);border:2px solid var(--border);border-radius:var(--radius);padding:16px;text-align:center;transition:var(--transition);">
+                                                <div style="font-weight:700;color:#fff;font-size:0.88rem;margin-bottom:4px;">@plan.label</div>
+                                                <div style="font-size:1.1rem;font-weight:900;color:var(--sa-gold);margin-bottom:4px;">@plan.price</div>
+                                                <div style="font-size:0.72rem;color:var(--text-muted);">@plan.desc</div>
+                                            </div>
+                                        </label>
+                                    </div>
+                                }
+                            </div>
+                        </div>
+
+                        <!-- SECTION: Account Details -->
+                        <div style="margin-bottom:32px;">
+                            <h5 style="color:var(--sa-gold);font-weight:700;margin-bottom:20px;display:flex;align-items:center;gap:8px;">
+                                <i class="fa-solid fa-user-shield"></i> Account Details
+                            </h5>
+                            <div class="row g-3">
+                                <div class="col-md-6 form-group-dark">
+                                    <label class="form-label">Your Full Name *</label>
+                                    <input asp-for="ContactPerson" class="form-control" placeholder="e.g. Thabo Nkosi" required />
+                                </div>
+                                <div class="col-md-6 form-group-dark">
+                                    <label class="form-label">Phone Number</label>
+                                    <input asp-for="Phone" class="form-control" placeholder="+27 82 000 1234" />
+                                </div>
+                                <div class="col-12 form-group-dark">
+                                    <label class="form-label">Email Address *</label>
+                                    <input asp-for="Email" type="email" class="form-control" placeholder="thabo@yourcompany.co.za" required />
+                                </div>
+                                <div class="col-md-6 form-group-dark">
+                                    <label class="form-label">Password *</label>
+                                    <input asp-for="Password" type="password" class="form-control" placeholder="Minimum 8 characters" required />
+                                </div>
+                                <div class="col-md-6 form-group-dark">
+                                    <label class="form-label">Confirm Password *</label>
+                                    <input asp-for="ConfirmPassword" type="password" class="form-control" placeholder="Repeat password" required />
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- TERMS -->
+                        <div style="margin-bottom:28px;">
+                            <div class="form-check" style="margin-bottom:10px;">
+                                <input asp-for="AgreeToTerms" class="form-check-input" type="checkbox" id="agreeTerms" required />
+                                <label class="form-check-label" for="agreeTerms" style="font-size:0.85rem;color:rgba(255,255,255,0.7);">
+                                    I agree to the <a href="#" style="color:var(--sa-gold);">Terms of Service</a> and <a href="#" style="color:var(--sa-gold);">End User License Agreement</a>
+                                </label>
+                            </div>
+                            <div class="form-check">
+                                <input asp-for="AgreeToPrivacy" class="form-check-input" type="checkbox" id="agreePrivacy" required />
+                                <label class="form-check-label" for="agreePrivacy" style="font-size:0.85rem;color:rgba(255,255,255,0.7);">
+                                    I consent to my data being processed in accordance with the <a href="#" style="color:var(--sa-gold);">POPIA Privacy Policy</a>
+                                </label>
+                            </div>
+                        </div>
+
+                        <button type="submit" class="btn-crm btn-crm-primary w-100" style="padding:15px;font-size:1rem;">
+                            <i class="fa-solid fa-rocket me-2"></i> Register My Company – Start Free
+                        </button>
+
+                        <p style="text-align:center;margin-top:16px;font-size:0.82rem;color:var(--text-muted);">
+                            Already have an account? <a asp-controller="Crm" asp-action="Dashboard" style="color:var(--sa-gold);">Login here</a>
+                        </p>
+                    </form>
+                </div>
+            </div>
+
+            <!-- SIDEBAR BENEFITS -->
+            <div class="col-lg-4">
+                <div class="card-dark" style="padding:28px;position:sticky;top:80px;">
+                    <div class="sa-flag-bar mb-3"></div>
+                    <h6 style="color:#fff;font-weight:700;margin-bottom:16px;">Why 5,200+ SA Businesses Choose UbuntuCRM</h6>
+                    @foreach (var benefit in new[] {
+                        new { icon="fa-check-circle", text="Setup in under 5 minutes" },
+                        new { icon="fa-check-circle", text="POPIA compliant from day 1" },
+                        new { icon="fa-check-circle", text="Pricing in South African Rand" },
+                        new { icon="fa-check-circle", text="SA phone & WhatsApp support" },
+                        new { icon="fa-check-circle", text="All 9 provinces supported" },
+                        new { icon="fa-check-circle", text="No long-term contracts" },
+                        new { icon="fa-check-circle", text="Data hosted in South Africa" },
+                        new { icon="fa-check-circle", text="B-BBEE reporting built-in" },
+                    })
+                    {
+                        <div style="display:flex;gap:10px;align-items:center;padding:8px 0;border-bottom:1px solid rgba(255,255,255,0.04);font-size:0.85rem;color:rgba(255,255,255,0.8);">
+                            <i class="fa-solid @benefit.icon" style="color:var(--sa-green);flex-shrink:0;"></i> @benefit.text
+                        </div>
+                    }
+                    <div class="mt-4 p-3" style="background:rgba(255,182,18,0.1);border-radius:10px;border:1px solid rgba(255,182,18,0.2);">
+                        <div style="font-size:0.8rem;font-weight:700;color:var(--sa-gold);margin-bottom:6px;">🎉 New Customer Offer</div>
+                        <div style="font-size:0.78rem;color:rgba(255,255,255,0.7);">Get 3 months of Starter free when you upgrade within 7 days of registration.</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+@section Scripts {
+    <script>
+        function selectSector(sector, el) {
+            document.querySelectorAll('.sector-pick-item').forEach(i => i.classList.remove('selected'));
+            el.classList.add('selected');
+            document.getElementById('sectorInput').value = sector;
+        }
+
+        function selectPlan(radio) {
+            document.querySelectorAll('.plan-card').forEach(card => {
+                card.style.borderColor = 'var(--border)';
+                card.style.background = 'var(--dark)';
+            });
+            const card = radio.nextElementSibling;
+            card.style.borderColor = 'var(--sa-gold)';
+            card.style.background = 'rgba(255,182,18,0.08)';
+        }
+
+        // Default select Free plan
+        document.addEventListener('DOMContentLoaded', () => {
+            const freeRadio = document.querySelector('.plan-radio[value="Free"]');
+            if (freeRadio) selectPlan(freeRadio);
+        });
+    </script>
+}

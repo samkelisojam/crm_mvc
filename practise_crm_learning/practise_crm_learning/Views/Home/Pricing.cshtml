@@ -1,0 +1,211 @@
+@using practise_crm_learning.Models
+@model List<SubscriptionPlan>
+@{
+    ViewData["Title"] = "Pricing";
+}
+
+<!-- PAGE HERO -->
+<section class="page-hero">
+    <div class="container">
+        <div class="hero-badge mx-auto d-inline-flex">
+            <i class="fa-solid fa-tag"></i> Pricing in ZAR
+        </div>
+        <h1 class="section-title mt-3">Simple, Transparent Pricing</h1>
+        <p class="section-subtitle mx-auto">All prices in South African Rand. No hidden fees. No US dollar surprises. Cancel anytime.</p>
+        <div class="sa-flag-bar" style="width:100px;margin:20px auto 0;"></div>
+    </div>
+</section>
+
+<!-- PLANS -->
+<section class="section-base section-dark">
+    <div class="container">
+        <!-- Annual/Monthly Toggle -->
+        <div class="text-center mb-5">
+            <div class="d-inline-flex align-items-center gap-3 p-1" style="background:var(--surface);border:1px solid var(--border);border-radius:50px;">
+                <button id="btnMonthly" onclick="toggleBilling('monthly')" style="padding:9px 24px;border-radius:50px;border:none;font-weight:700;font-size:0.88rem;background:var(--sa-gold);color:#000;">Monthly</button>
+                <button id="btnAnnual" onclick="toggleBilling('annual')" style="padding:9px 24px;border-radius:50px;border:none;font-weight:700;font-size:0.88rem;background:transparent;color:rgba(255,255,255,0.5);">
+                    Annual <span style="background:rgba(0,122,77,0.3);color:#00d46a;font-size:0.7rem;padding:2px 8px;border-radius:50px;margin-left:4px;">Save 20%</span>
+                </button>
+            </div>
+        </div>
+
+        <div class="row g-4 align-items-stretch">
+            @foreach (var plan in Model)
+            {
+                <div class="col-md-6 col-lg-3">
+                    <div class="pricing-card @(plan.IsPopular ? "popular" : "")">
+                        @if (plan.IsPopular)
+                        {
+                            <div class="popular-badge">⭐ Most Popular</div>
+                        }
+                        <div class="pricing-tier-name">@plan.Name</div>
+                        <div class="pricing-desc">@plan.Description</div>
+
+                        <div class="pricing-price monthly-price">
+                            @if (plan.MonthlyPrice == 0)
+                            {
+                                <span>R0</span><span style="font-size:0.9rem;font-weight:400;color:var(--text-muted);">/month</span>
+                            }
+                            else
+                            {
+                                <sup>R</sup>@plan.MonthlyPrice.ToString("N0")<span>/mo</span>
+                            }
+                        </div>
+                        <div class="pricing-price annual-price" style="display:none;">
+                            @if (plan.AnnualPrice == 0)
+                            {
+                                <span>R0</span><span style="font-size:0.9rem;font-weight:400;color:var(--text-muted);">/year</span>
+                            }
+                            else
+                            {
+                                <sup>R</sup>@plan.AnnualPrice.ToString("N0")<span>/yr</span>
+                            }
+                        </div>
+
+                        <div style="font-size:0.78rem;color:var(--text-muted);margin-bottom:20px;">
+                            @(plan.MaxUsers == -1 ? "Unlimited users" : $"Up to {plan.MaxUsers} users") ·
+                            @(plan.MaxContacts == -1 ? "Unlimited contacts" : $"{plan.MaxContacts:N0} contacts")
+                        </div>
+
+                        <ul class="pricing-features">
+                            @foreach (var f in plan.Features)
+                            {
+                                <li><i class="fa-solid fa-check-circle"></i>@f</li>
+                            }
+                            @foreach (var l in plan.Limitations)
+                            {
+                                <li class="limited"><i class="fa-solid fa-xmark"></i>@l</li>
+                            }
+                        </ul>
+
+                        @if (plan.Tier == SubscriptionTier.Enterprise)
+                        {
+                            <a asp-controller="Home" asp-action="Contact" class="btn-pricing btn-pricing-outline">
+                                <i class="fa-solid fa-phone me-1"></i> Contact Sales
+                            </a>
+                        }
+                        else
+                        {
+                            <a asp-controller="Company" asp-action="Register" class="btn-pricing @(plan.IsPopular ? "btn-pricing-gold" : "btn-pricing-outline")">
+                                @(plan.Tier == SubscriptionTier.Free ? "Start Free Now" : $"Get Started – R{plan.MonthlyPrice:N0}/mo")
+                            </a>
+                        }
+                    </div>
+                </div>
+            }
+        </div>
+
+        <!-- Comparison Table -->
+        <div class="mt-5">
+            <h4 class="text-center mb-4" style="color:#fff;font-weight:700;">Full Feature Comparison</h4>
+            <div class="crm-table-wrapper">
+                <table class="crm-table">
+                    <thead>
+                        <tr>
+                            <th>Feature</th>
+                            <th class="text-center">Free</th>
+                            <th class="text-center">Starter</th>
+                            <th class="text-center" style="color:var(--sa-gold);">Pro ⭐</th>
+                            <th class="text-center">Enterprise</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @{
+                            var rows = new[]
+                            {
+                                new { feature="Users", free="1", starter="5", pro="25", ent="Unlimited" },
+                                new { feature="Contacts", free="100", starter="1,000", pro="10,000", ent="Unlimited" },
+                                new { feature="Lead Management", free="✓", starter="✓", pro="✓", ent="✓" },
+                                new { feature="Deal Pipeline", free="✗", starter="✓", pro="✓", ent="✓" },
+                                new { feature="Custom Fields", free="✗", starter="✗", pro="✓", ent="✓" },
+                                new { feature="Workflow Automation", free="✗", starter="✗", pro="✓", ent="✓" },
+                                new { feature="WhatsApp Integration", free="✗", starter="✓", pro="✓", ent="✓" },
+                                new { feature="Advanced Reports", free="✗", starter="✗", pro="✓", ent="✓" },
+                                new { feature="API Access", free="✗", starter="✗", pro="✓", ent="✓" },
+                                new { feature="POPIA Compliance", free="✗", starter="✗", pro="✓", ent="✓" },
+                                new { feature="B-BBEE Reporting", free="✗", starter="✗", pro="✗", ent="✓" },
+                                new { feature="CIPC Integration", free="✗", starter="✗", pro="✗", ent="✓" },
+                                new { feature="Dedicated Account Manager", free="✗", starter="✗", pro="✗", ent="✓" },
+                                new { feature="White-label Option", free="✗", starter="✗", pro="✗", ent="✓" },
+                                new { feature="Support", free="Community", starter="Email", pro="Phone", ent="24/7 Dedicated" },
+                            };
+                        }
+                        @foreach (var row in rows)
+                        {
+                            <tr>
+                                <td style="font-weight:500;">@row.feature</td>
+                                <td class="text-center" style="color:@(row.free == "✗" ? "var(--text-muted)" : row.free == "✓" ? "var(--sa-green)" : "#fff")">@row.free</td>
+                                <td class="text-center" style="color:@(row.starter == "✗" ? "var(--text-muted)" : row.starter == "✓" ? "var(--sa-green)" : "#fff")">@row.starter</td>
+                                <td class="text-center" style="color:@(row.pro == "✗" ? "var(--text-muted)" : row.pro == "✓" ? "var(--sa-green)" : "var(--sa-gold)")">@row.pro</td>
+                                <td class="text-center" style="color:@(row.ent == "✗" ? "var(--text-muted)" : row.ent == "✓" ? "var(--sa-green)" : "#fff")">@row.ent</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- FAQ -->
+        <div class="mt-5">
+            <h4 class="text-center mb-4" style="color:#fff;font-weight:700;">Frequently Asked Questions</h4>
+            <div class="row g-3">
+                @{
+                    var faqs = new[]
+                    {
+                        new { q="Is pricing really in ZAR?", a="Yes. All plans are priced in South African Rand and billed through local payment methods including EFT, credit card and debit order." },
+                        new { q="Is there a VAT component?", a="Yes. Prices shown are exclusive of 15% VAT as required by SARS. A valid VAT invoice is issued monthly for all paid plans." },
+                        new { q="Can I cancel anytime?", a="Absolutely. No long-term contracts. Cancel with 30 days notice on any plan. Your data is exported to you in full." },
+                        new { q="Do you comply with POPIA?", a="Yes. UbuntuCRM is fully POPIA compliant. We are registered as a responsible party and have a designated Information Officer." },
+                        new { q="What payment methods do you accept?", a="Credit card (Visa, Mastercard), EFT, instant EFT via Ozow, and debit order. All processed securely via Peach Payments." },
+                        new { q="Can I get a demo before buying?", a="Yes! Book a personalised demo with one of our SA-based sales consultants. We'll even configure it for your specific industry." },
+                    };
+                }
+                @foreach (var faq in faqs)
+                {
+                    <div class="col-md-6">
+                        <div class="info-card">
+                            <div style="font-weight:700;color:#fff;margin-bottom:8px;">@faq.q</div>
+                            <div style="color:rgba(255,255,255,0.6);font-size:0.88rem;line-height:1.6;">@faq.a</div>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- CTA -->
+<section class="section-base section-alt">
+    <div class="container">
+        <div class="cta-banner">
+            <h2>Start Free Today</h2>
+            <p>No credit card. No commitment. Just powerful CRM for your SA business.</p>
+            <a asp-controller="Company" asp-action="Register" class="btn-hero-primary">
+                <i class="fa-solid fa-rocket"></i> Get Started Free
+            </a>
+        </div>
+    </div>
+</section>
+
+@section Scripts {
+    <script>
+        function toggleBilling(type) {
+            const monthlyPrices = document.querySelectorAll('.monthly-price');
+            const annualPrices = document.querySelectorAll('.annual-price');
+            const btnM = document.getElementById('btnMonthly');
+            const btnA = document.getElementById('btnAnnual');
+
+            if (type === 'annual') {
+                monthlyPrices.forEach(p => p.style.display = 'none');
+                annualPrices.forEach(p => p.style.display = 'block');
+                btnA.style.background = 'var(--sa-gold)'; btnA.style.color = '#000';
+                btnM.style.background = 'transparent'; btnM.style.color = 'rgba(255,255,255,0.5)';
+            } else {
+                monthlyPrices.forEach(p => p.style.display = 'block');
+                annualPrices.forEach(p => p.style.display = 'none');
+                btnM.style.background = 'var(--sa-gold)'; btnM.style.color = '#000';
+                btnA.style.background = 'transparent'; btnA.style.color = 'rgba(255,255,255,0.5)';
+            }
+        }
+    </script>
+}

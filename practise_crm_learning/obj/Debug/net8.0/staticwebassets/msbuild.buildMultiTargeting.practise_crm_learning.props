@@ -1,0 +1,3 @@
+﻿<Project>
+  <Import Project="..\build\practise_crm_learning.props" />
+</Project>

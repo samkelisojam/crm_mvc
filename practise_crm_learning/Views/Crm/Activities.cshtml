@@ -1,0 +1,92 @@
+@using practise_crm_learning.Models
+@model List<Activity>
+@{
+    ViewData["Title"] = "Activities";
+    var pending = Model.Where(a => !a.IsCompleted).ToList();
+    var completed = Model.Where(a => a.IsCompleted).ToList();
+}
+
+<div class="crm-page-header">
+    <div>
+        <h1 class="crm-page-title"><i class="fa-solid fa-calendar-check me-2 text-gold"></i>Activities & Tasks</h1>
+        <div class="crm-page-subtitle">@pending.Count pending · @completed.Count completed today</div>
+    </div>
+    <div class="d-flex gap-2">
+        <button class="btn-crm btn-crm-outline"><i class="fa-solid fa-calendar"></i> Calendar View</button>
+        <button class="btn-crm btn-crm-primary"><i class="fa-solid fa-plus"></i> New Activity</button>
+    </div>
+</div>
+
+<!-- TYPE FILTER TABS -->
+<div style="display:flex;gap:8px;margin-bottom:20px;flex-wrap:wrap;">
+    @foreach (var tab in new[] { ("All", "fa-bars"), ("Calls", "fa-phone"), ("Emails", "fa-envelope"), ("Meetings", "fa-people-arrows"), ("Tasks", "fa-list-check") })
+    {
+        <button style="padding:8px 18px;border-radius:50px;font-size:0.82rem;font-weight:600;border:1px solid var(--border);background:@(tab.Item1=="All"?"rgba(255,182,18,0.15)":"transparent");color:@(tab.Item1=="All"?"var(--sa-gold)":"rgba(255,255,255,0.6)");cursor:pointer;">
+            <i class="fa-solid @tab.Item2 me-2"></i>@tab.Item1
+        </button>
+    }
+</div>
+
+<!-- PENDING ACTIVITIES -->
+<h5 style="color:#fff;font-weight:700;margin-bottom:12px;">
+    <i class="fa-solid fa-clock me-2 text-gold"></i>Pending (@pending.Count)
+</h5>
+
+@foreach (var act in pending)
+{
+    var typeClass = act.Type switch { "Call"=>"act-call","Email"=>"act-email","Meeting"=>"act-meeting",_=>"act-task" };
+    var typeIcon = act.Type switch { "Call"=>"fa-phone","Email"=>"fa-envelope","Meeting"=>"fa-people-arrows",_=>"fa-list-check" };
+    var prioClass = act.Priority switch { Priority.Low=>"priority-low",Priority.Medium=>"priority-medium",Priority.High=>"priority-high",_=>"priority-critical" };
+    var isOverdue = act.DueDate < DateTime.Now;
+
+    <div class="activity-item @(isOverdue ? "border-danger" : "")">
+        <div class="activity-icon @typeClass"><i class="fa-solid @typeIcon"></i></div>
+        <div style="flex:1;">
+            <div class="activity-title">@act.Title</div>
+            <div class="activity-meta" style="margin-top:4px;">
+                <i class="fa-solid fa-building me-1"></i>@act.RelatedTo &nbsp;·&nbsp;
+                <i class="fa-solid fa-user me-1"></i>@act.AssignedTo &nbsp;·&nbsp;
+                <i class="fa-solid fa-@(act.Type=="Call"?"phone":act.Type=="Email"?"envelope":"people-arrows") me-1"></i>@act.Type
+            </div>
+            @if (!string.IsNullOrEmpty(act.Description))
+            {
+                <div style="font-size:0.78rem;color:rgba(255,255,255,0.5);margin-top:4px;">@act.Description</div>
+            }
+        </div>
+        <div style="display:flex;flex-direction:column;align-items:flex-end;gap:6px;flex-shrink:0;">
+            <span class="badge-priority @prioClass">@act.Priority</span>
+            <span style="font-size:0.75rem;color:@(isOverdue?"var(--sa-red)":"var(--text-muted)");">
+                <i class="fa-solid fa-clock me-1"></i>
+                @(act.DueDate.Date == DateTime.Today ? "Today " + act.DueDate.ToString("HH:mm") : act.DueDate.ToString("dd MMM, HH:mm"))
+                @(isOverdue ? " ⚠ Overdue" : "")
+            </span>
+        </div>
+        <div style="display:flex;gap:6px;flex-shrink:0;margin-left:12px;">
+            <button class="btn-table-action" style="background:rgba(0,122,77,0.15);border-color:rgba(0,122,77,0.3);color:#00d46a;">
+                <i class="fa-solid fa-check me-1"></i>Done
+            </button>
+            <button class="btn-table-action"><i class="fa-solid fa-edit"></i></button>
+        </div>
+    </div>
+}
+
+<!-- COMPLETED TODAY -->
+@if (completed.Any())
+{
+    <h5 style="color:#fff;font-weight:700;margin:24px 0 12px;">
+        <i class="fa-solid fa-circle-check me-2" style="color:var(--sa-green);"></i>Completed Today (@completed.Count)
+    </h5>
+    @foreach (var act in completed)
+    {
+        var typeClass = act.Type switch { "Call"=>"act-call","Email"=>"act-email","Meeting"=>"act-meeting",_=>"act-task" };
+        var typeIcon = act.Type switch { "Call"=>"fa-phone","Email"=>"fa-envelope","Meeting"=>"fa-people-arrows",_=>"fa-list-check" };
+        <div class="activity-item completed">
+            <div class="activity-icon @typeClass"><i class="fa-solid @typeIcon"></i></div>
+            <div style="flex:1;">
+                <div class="activity-title" style="text-decoration:line-through;opacity:0.6;">@act.Title</div>
+                <div class="activity-meta"><i class="fa-solid fa-building me-1"></i>@act.RelatedTo</div>
+            </div>
+            <span style="font-size:0.75rem;color:var(--sa-green);"><i class="fa-solid fa-circle-check me-1"></i>Completed</span>
+        </div>
+    }
+}

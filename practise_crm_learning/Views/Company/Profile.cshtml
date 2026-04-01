@@ -1,0 +1,146 @@
+@using practise_crm_learning.Models
+@model Company
+@{
+    ViewData["Title"] = "Company Profile";
+    var initial = Model.Name[0].ToString().ToUpper();
+}
+
+<div class="crm-page-header">
+    <div>
+        <h1 class="crm-page-title"><i class="fa-solid fa-building-user me-2 text-gold"></i>Company Profile</h1>
+        <div class="crm-page-subtitle">Manage your company information, sector and settings</div>
+    </div>
+    <div class="d-flex gap-2">
+        <button class="btn-crm btn-crm-outline"><i class="fa-solid fa-image"></i> Upload Logo</button>
+        <button class="btn-crm btn-crm-primary"><i class="fa-solid fa-edit"></i> Edit Profile</button>
+    </div>
+</div>
+
+<!-- PROFILE CARD -->
+<div style="background:var(--surface);border:1px solid var(--border);border-radius:var(--radius-lg);margin-bottom:24px;overflow:hidden;">
+    <!-- Banner -->
+    <div class="company-banner">
+        <div style="position:absolute;inset:0;display:flex;align-items:center;justify-content:center;z-index:1;">
+            <div style="text-align:center;color:rgba(255,255,255,0.3);font-size:0.8rem;">
+                <i class="fa-solid fa-image" style="font-size:1.5rem;margin-bottom:6px;display:block;"></i>
+                Click "Upload Logo" to add your company banner
+            </div>
+        </div>
+        <div class="company-logo">@initial</div>
+    </div>
+    <!-- Company info -->
+    <div style="padding:24px 28px 28px 128px;">
+        <div style="display:flex;align-items:flex-start;justify-content:space-between;flex-wrap:wrap;gap:12px;">
+            <div>
+                <h2 style="color:#fff;font-weight:800;font-size:1.6rem;margin-bottom:6px;">@Model.Name</h2>
+                <div style="display:flex;gap:10px;flex-wrap:wrap;align-items:center;">
+                    <span class="badge-sector"><i class="fa-solid @SectorHelper.GetIcon(Model.Sector) me-1"></i>@SectorHelper.GetDisplayName(Model.Sector)</span>
+                    <span style="background:rgba(255,182,18,0.15);color:var(--sa-gold);font-size:0.75rem;font-weight:700;padding:3px 12px;border-radius:50px;border:1px solid rgba(255,182,18,0.3);">
+                        <i class="fa-solid fa-crown me-1"></i>@Model.SubscriptionTier Plan
+                    </span>
+                    <span style="font-size:0.78rem;color:var(--text-muted);">
+                        <i class="fa-solid fa-location-dot me-1"></i>@Model.City, @Model.Province
+                    </span>
+                    @if (Model.IsActive)
+                    {
+                        <span style="background:rgba(0,122,77,0.2);color:#00d46a;font-size:0.75rem;font-weight:700;padding:3px 12px;border-radius:50px;">
+                            <i class="fa-solid fa-circle me-1" style="font-size:0.5rem;"></i>Active
+                        </span>
+                    }
+                </div>
+            </div>
+            <div style="text-align:right;">
+                <div style="font-size:0.75rem;color:var(--text-muted);margin-bottom:4px;">Member since</div>
+                <div style="font-weight:700;color:#fff;">@Model.CreatedAt.ToString("MMMM yyyy")</div>
+            </div>
+        </div>
+        @if (!string.IsNullOrEmpty(Model.Description))
+        {
+            <p style="color:rgba(255,255,255,0.6);font-size:0.9rem;margin-top:14px;line-height:1.6;">@Model.Description</p>
+        }
+    </div>
+</div>
+
+<!-- DETAILS GRID -->
+<div class="row g-4">
+    <!-- Contact & Business Info -->
+    <div class="col-lg-6">
+        <div class="info-card">
+            <div class="info-card-title"><i class="fa-solid fa-building me-2"></i>Business Information</div>
+            <div class="info-row"><span class="info-row-label">Registration No.</span><span class="info-row-value">@Model.RegistrationNumber</span></div>
+            <div class="info-row"><span class="info-row-label">Sector</span><span class="info-row-value">@SectorHelper.GetDisplayName(Model.Sector)</span></div>
+            <div class="info-row"><span class="info-row-label">Employees</span><span class="info-row-value">@Model.EmployeeCount</span></div>
+            <div class="info-row"><span class="info-row-label">Annual Revenue</span><span class="info-row-value text-gold">R@(Model.AnnualRevenue.ToString("N0"))</span></div>
+            <div class="info-row"><span class="info-row-label">Subscription</span><span class="info-row-value" style="color:var(--sa-gold);">@Model.SubscriptionTier</span></div>
+            <div class="info-row"><span class="info-row-label">Country</span><span class="info-row-value">🇿🇦 @Model.Country</span></div>
+        </div>
+
+        <div class="info-card">
+            <div class="info-card-title"><i class="fa-solid fa-address-card me-2"></i>Contact Information</div>
+            <div class="info-row"><span class="info-row-label">Email</span><span class="info-row-value"><a href="mailto:@Model.Email" style="color:var(--sa-gold);">@Model.Email</a></span></div>
+            <div class="info-row"><span class="info-row-label">Phone</span><span class="info-row-value">@Model.Phone</span></div>
+            <div class="info-row"><span class="info-row-label">Website</span><span class="info-row-value"><a href="https://@Model.Website" target="_blank" style="color:var(--sa-gold);">@Model.Website</a></span></div>
+            <div class="info-row"><span class="info-row-label">Address</span><span class="info-row-value">@Model.Address</span></div>
+            <div class="info-row"><span class="info-row-label">City</span><span class="info-row-value">@Model.City, @Model.Province @Model.PostalCode</span></div>
+        </div>
+    </div>
+
+    <!-- Services & Stats -->
+    <div class="col-lg-6">
+        <div class="info-card">
+            <div class="info-card-title"><i class="fa-solid fa-star me-2"></i>Services Offered</div>
+            <div style="display:flex;flex-wrap:wrap;gap:8px;margin-top:8px;">
+                @foreach (var service in Model.ServicesOffered)
+                {
+                    <span style="background:rgba(0,122,77,0.15);border:1px solid rgba(0,122,77,0.3);color:#00d46a;padding:5px 14px;border-radius:50px;font-size:0.78rem;font-weight:600;">
+                        <i class="fa-solid fa-check me-1"></i>@service
+                    </span>
+                }
+            </div>
+            <div class="mt-3">
+                <button class="btn-crm btn-crm-outline" style="font-size:0.78rem;padding:7px 14px;">
+                    <i class="fa-solid fa-plus me-1"></i> Add Service
+                </button>
+            </div>
+        </div>
+
+        <div class="info-card">
+            <div class="info-card-title"><i class="fa-solid fa-chart-bar me-2"></i>CRM Stats</div>
+            <div class="row g-3 mt-1">
+                @foreach (var stat in new[] {
+                    new { label="Total Contacts", value="1,247", icon="fa-users", color="rgba(74,158,255,0.2)", textColor="#4a9eff" },
+                    new { label="Active Leads", value="389", icon="fa-bullseye", color="rgba(255,182,18,0.15)", textColor="var(--sa-gold)" },
+                    new { label="Open Deals", value="127", icon="fa-handshake", color="rgba(0,122,77,0.2)", textColor="#00d46a" },
+                    new { label="Revenue This Month", value="R1.23M", icon="fa-sack-dollar", color="rgba(255,182,18,0.15)", textColor="var(--sa-gold)" }
+                })
+                {
+                    <div class="col-6">
+                        <div style="background:@stat.color;border-radius:10px;padding:16px;text-align:center;">
+                            <div style="font-size:1.3rem;font-weight:900;color:@stat.textColor;">@stat.value</div>
+                            <div style="font-size:0.72rem;color:rgba(255,255,255,0.5);margin-top:4px;">@stat.label</div>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+
+        <!-- Upgrade CTA -->
+        @if (Model.SubscriptionTier != SubscriptionTier.Enterprise)
+        {
+            <div style="background:linear-gradient(135deg,rgba(255,182,18,0.1),rgba(0,122,77,0.1));border:1px solid rgba(255,182,18,0.25);border-radius:var(--radius);padding:20px;">
+                <div style="display:flex;align-items:flex-start;gap:12px;">
+                    <div style="width:40px;height:40px;background:rgba(255,182,18,0.2);border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                        <i class="fa-solid fa-crown" style="color:var(--sa-gold);"></i>
+                    </div>
+                    <div style="flex:1;">
+                        <div style="font-weight:700;color:#fff;margin-bottom:4px;">Upgrade to Enterprise</div>
+                        <div style="font-size:0.78rem;color:rgba(255,255,255,0.5);margin-bottom:12px;">Unlock unlimited users, B-BBEE reporting, CIPC integration and a dedicated SA account manager.</div>
+                        <a asp-controller="Home" asp-action="Pricing" class="btn-crm btn-crm-primary" style="font-size:0.8rem;padding:7px 16px;">
+                            <i class="fa-solid fa-arrow-up me-1"></i> View Plans
+                        </a>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+</div>
